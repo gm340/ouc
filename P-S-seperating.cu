@@ -971,7 +971,8 @@ __global__ void poynting(int Xn, int Zn, int L,float* upx_r, float* upz_r, float
 	float* fenzi_PP, float* fenzi_PS, float* fenmu_P,
 	float* RR_upx_u, float* RR_upx_d, float* RR_upx_l, float* RR_upx_r, float* RR_upz_u, float* RR_upz_d, float* RR_upz_l, float* RR_upz_r,
 	float* RR_usx_u, float* RR_usx_d, float* RR_usx_l, float* RR_usx_r, float* RR_usz_u, float* RR_usz_d, float* RR_usz_l, float* RR_usz_r,
-	float* SS_upx_u, float* SS_upx_d, float* SS_upx_l, float* SS_upx_r, float* SS_upz_u, float* SS_upz_d, float* SS_upz_l, float* SS_upz_r)
+	float* SS_upx_u, float* SS_upx_d, float* SS_upx_l, float* SS_upx_r, float* SS_upz_u, float* SS_upz_d, float* SS_upz_l, float* SS_upz_r,
+	float* duxdz, float* duzdz, float* duxdx, float* duzdx)
 {
 	int i, j;
 
@@ -990,8 +991,9 @@ __global__ void poynting(int Xn, int Zn, int L,float* upx_r, float* upz_r, float
 		Epx_R[i * Zn + j] = -theta_r[i * Zn + j] * upx_r[i * Zn + j];
 		Epz_R[i * Zn + j] = -theta_r[i * Zn + j] * upz_r[i * Zn + j];
 
-		Esx_R[i * Zn + j] = omega_r[i * Zn + j] * usz_r[i * Zn + j];
-		Esz_R[i * Zn + j] = -omega_r[i * Zn + j] * usx_r[i * Zn + j];
+		Esx_R[i * Zn + j] = (omega_r[i * Zn + j]+ 2 * (duxdx - duxdz)) * usz_r[i * Zn + j];
+		Esz_R[i * Zn + j] = -(omega_r[i * Zn + j]+ 2 *(duzdx - duzdz)) * usx_r[i * Zn + j];
+
 
 
 
@@ -1991,7 +1993,8 @@ int main() {
 					d_Epx_S, d_Epz_S, d_Epx_R, d_Epz_R, d_Esx_R, d_Esz_R, d_fenzi_PP_pyt, d_fenzi_PS_pyt, d_fenmu_P_pyt,					
 					d_RR_upx_up, d_RR_upx_dn, d_RR_upx_lf, d_RR_upx_rt, d_RR_upz_up, d_RR_upz_dn, d_RR_upz_lf, d_RR_upz_rt,
 					d_RR_usx_up, d_RR_usx_dn, d_RR_usx_lf, d_RR_usx_rt, d_RR_usz_up, d_RR_usz_dn, d_RR_usz_lf, d_RR_usz_rt,
-					d_SS_upx_up, d_SS_upx_dn, d_SS_upx_lf, d_SS_upx_rt, d_SS_upz_up, d_SS_upz_dn, d_SS_upz_lf, d_SS_upz_rt);
+					d_SS_upx_up, d_SS_upx_dn, d_SS_upx_lf, d_SS_upx_rt, d_SS_upz_up, d_SS_upz_dn, d_SS_upz_lf, d_SS_upz_rt,
+                                        d_duxdz_r, d_duzdz_r, d_duxdx_r, d_duzdx_r);
 
 				corr_v << <dimGrid, dimBlock >> > (Xn, Zn, pml,d_fenzi_PP, d_fenzi_PS, d_fenmu_P, d_upx_past_s, d_upz_past_s, d_upx_next_r, d_upz_next_r, d_usx_next_r, d_usz_next_r);
 				
